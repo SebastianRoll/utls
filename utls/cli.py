@@ -40,11 +40,9 @@ def processor(f):
     function from it.
     """
     def new_func(*args, **kwargs):
-        #@wraps
         def processor(stream):
             return f(stream, *args, **kwargs)
         return processor
-    #return new_func
     return update_wrapper(new_func, f)
 
 
@@ -52,35 +50,41 @@ def generator(f):
     """Similar to the :func:`processor` but passes through old values
     unchanged and does not pass through the values as parameter.
     """
-    #@wraps
     @processor
     def new_func(stream, *args, **kwargs):
         for item in stream:
             yield item
         for item in f(*args, **kwargs):
             yield item
-    #return new_func
     return update_wrapper(new_func, f)
 
 
 @cli.command('com')
 @click.option('-e', '--equations', type=click.STRING,
               multiple=True, help='Python equations.')
-@click.option('--convert', is_flag=True)
 @generator
-def com(equations, convert=False):
+def com(equations):
     for eq in equations:
-        click.echo(eq)
-        if convert:
-            yield command_to_latex(eq)
-        else:
-            yield eq
+        click.echo("Input: {}".format(eq))
+        yield eq
 
-
-@cli.command('show')
-@click.option('--together', is_flag=True)
+@cli.command('py2latex')
 @processor
-def show(latex_eqs, together=False):
+def py2latex(equations):
+    for eq in equations:
+        converted = command_to_latex(eq)
+        click.echo("{} -> {}".format(eq, converted))
+        yield converted
+
+@cli.command('out')
+@click.option('--separate', is_flag=True)
+@click.option('--show', is_flag=True)
+@click.option('--save', is_flag=True)
+@click.option('--filename', default='processed-%04d.png', type=click.Path(),
+              help='The format for the filename.',
+              show_default=True)
+@processor
+def out(latex_eqs, separate=False, filename='processed-%04d.png', show=True, save=False):
     """
     MAke sure you have installed texlive-latex-extra and texlive-fonts-recommended:
     http://stackoverflow.com/questions/11354149/python-unable-to-render-tex-in-matplotlib/11357765#11357765
@@ -90,7 +94,7 @@ def show(latex_eqs, together=False):
     matplotlib.rcParams['text.usetex'] = True
     matplotlib.rcParams['text.latex.unicode'] = True
 
-    if together:
+    if not separate:
         alleqs = "\n".join(latex_eqs)
         fig = plt.figure(figsize=(3, 1))
         fig.text(0.1, 0.5, alleqs, size=24, va='center')
@@ -98,7 +102,6 @@ def show(latex_eqs, together=False):
         plt.show()
     else:
         for eq in latex_eqs:
-            click.echo(eq)
             fig = plt.figure(figsize=(3, 1))
             fig.text(0.1, 0.5, eq, size=24, va='center')
 
