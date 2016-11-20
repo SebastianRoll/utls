@@ -8,13 +8,21 @@ Installation
 Stable release
 --------------
 
+Depends on texlive-latex-extra and texlive-fonts-recommended.
+
+On ubuntu:
+
+.. code-block:: console
+
+    $ sudo apt-get install texlive-latex-extra texlive-fonts-recommended
+
 To install utls, run this command in your terminal:
 
 .. code-block:: console
 
     $ pip install utls
 
-This is the preferred method to install utls, as it will always install the most recent stable release. 
+This is the preferred method to install utls, as it will always install the most recent stable release.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.

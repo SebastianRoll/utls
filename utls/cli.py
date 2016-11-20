@@ -2,16 +2,17 @@
 
 import click
 from latex import command_to_latex
-from functools import wraps, update_wrapper
+from functools import update_wrapper
 
 
 @click.group(chain=True)
 def cli():
-    """This script processes a bunch of images through pillow in a unix
-    pipe.  One commands feeds into the next.
+    """This script converts Python-formatted equations in Latex. One commands feeds into the next.
+
     Example:
+
     \b
-        imagepipe open -i example01.jpg resize -w 128 display
+        utls open -e example01.jpg resize -w 128 display
         imagepipe open -i example02.jpg blur save
     """
 
@@ -59,11 +60,11 @@ def generator(f):
     return update_wrapper(new_func, f)
 
 
-@cli.command('com')
+@cli.command('equation')
 @click.option('-e', '--equations', type=click.STRING,
               multiple=True, help='Python equations.')
 @generator
-def com(equations):
+def equation(equations):
     for eq in equations:
         click.echo("Input: {}".format(eq))
         yield eq
@@ -71,6 +72,8 @@ def com(equations):
 @cli.command('py2latex')
 @processor
 def py2latex(equations):
+    """
+    Convert from Python to Latex."""
     for eq in equations:
         converted = command_to_latex(eq)
         click.echo("{} -> {}".format(eq, converted))
@@ -86,7 +89,9 @@ def py2latex(equations):
 @processor
 def fig(latex_eqs, separate=False, filename='processed-{}.png', show=False, save=False):
     """
-    MAke sure you have installed texlive-latex-extra and texlive-fonts-recommended:
+    Place latex equations in a Matplotlib figure.
+
+    Make sure you have installed texlive-latex-extra and texlive-fonts-recommended:
     http://stackoverflow.com/questions/11354149/python-unable-to-render-tex-in-matplotlib/11357765#11357765
     """
     import matplotlib
@@ -114,8 +119,10 @@ def fig(latex_eqs, separate=False, filename='processed-{}.png', show=False, save
                 plt.savefig(filename.format(i))
             yield eq
 
+def main():
+    cli(obj={})
 
 if __name__ == "__main__":
     import sys
     print sys.argv
-    cli(obj={})
+    main()
