@@ -76,15 +76,15 @@ def py2latex(equations):
         click.echo("{} -> {}".format(eq, converted))
         yield converted
 
-@cli.command('out')
+@cli.command('fig')
 @click.option('--separate', is_flag=True)
 @click.option('--show', is_flag=True)
 @click.option('--save', is_flag=True)
-@click.option('--filename', default='processed-%04d.png', type=click.Path(),
+@click.option('--filename', default='processed-{}.png', type=click.Path(),
               help='The format for the filename.',
               show_default=True)
 @processor
-def out(latex_eqs, separate=False, filename='processed-%04d.png', show=True, save=False):
+def fig(latex_eqs, separate=False, filename='processed-{}.png', show=False, save=False):
     """
     MAke sure you have installed texlive-latex-extra and texlive-fonts-recommended:
     http://stackoverflow.com/questions/11354149/python-unable-to-render-tex-in-matplotlib/11357765#11357765
@@ -99,14 +99,19 @@ def out(latex_eqs, separate=False, filename='processed-%04d.png', show=True, sav
         fig = plt.figure(figsize=(3, 1))
         fig.text(0.1, 0.5, alleqs, size=24, va='center')
 
-        plt.show()
+        if show:
+            plt.show()
+        if save:
+            plt.savefig(filename.format("all"))
     else:
-        for eq in latex_eqs:
+        for i, eq in enumerate(latex_eqs):
             fig = plt.figure(figsize=(3, 1))
             fig.text(0.1, 0.5, eq, size=24, va='center')
 
-            #plt.savefig('tex_demo')
-            plt.show()
+            if show:
+                plt.show()
+            if save:
+                plt.savefig(filename.format(i))
             yield eq
 
 
