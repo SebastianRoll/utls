@@ -15,6 +15,7 @@ def cli():
         imagepipe open -i example02.jpg blur save
     """
 
+
 @cli.resultcallback()
 def process_commands(processors):
     """This result callback is invoked with an iterable of all the chained
@@ -62,47 +63,51 @@ def generator(f):
     return update_wrapper(new_func, f)
 
 
-
 @cli.command('com')
-@click.option('-e', '--equations',
+@click.option('-e', '--equations', type=click.STRING,
               multiple=True, help='Python equations.')
+@click.option('--convert', is_flag=True)
 @generator
-def com(equations):
+def com(equations, convert=False):
     for eq in equations:
         click.echo(eq)
-        yield command_to_latex(eq)
+        if convert:
+            yield command_to_latex(eq)
+        else:
+            yield eq
 
 
 @cli.command('show')
+@click.option('--together', is_flag=True)
 @processor
-def show(latex_eqs):
+def show(latex_eqs, together=False):
     """
-    you need to install texlive-latex-extra and texlive-fonts-recommended.
+    MAke sure you have installed texlive-latex-extra and texlive-fonts-recommended:
     http://stackoverflow.com/questions/11354149/python-unable-to-render-tex-in-matplotlib/11357765#11357765
     """
-    import numpy as np
+    import matplotlib
     import matplotlib.pyplot as plt
+    matplotlib.rcParams['text.usetex'] = True
+    matplotlib.rcParams['text.latex.unicode'] = True
 
-    for eq in latex_eqs:
-        # Example data
-        t = np.arange(0.0, 1.0 + 0.01, 0.01)
-        s = np.cos(4 * np.pi * t) + 2
+    if together:
+        alleqs = "\n".join(latex_eqs)
+        fig = plt.figure(figsize=(3, 1))
+        fig.text(0.1, 0.5, alleqs, size=24, va='center')
 
-        plt.rc('text', usetex=True)
-        plt.rc('font', family='serif')
-        plt.plot(t, s)
-
-        plt.xlabel(r'\textbf{time} (s)')
-        plt.ylabel(r'\textit{voltage} (mV)', fontsize=16)
-        plt.title(r"\TeX\ is Number "
-                  r"$\displaystyle\sum_{n=1}^\infty\frac{-e^{i\pi}}{2^n}$!",
-                  fontsize=16, color='gray')
-        # Make room for the ridiculously large title.
-        plt.subplots_adjust(top=0.8)
-
-        plt.savefig('tex_demo')
         plt.show()
+    else:
+        for eq in latex_eqs:
+            click.echo(eq)
+            fig = plt.figure(figsize=(3, 1))
+            fig.text(0.1, 0.5, eq, size=24, va='center')
+
+            #plt.savefig('tex_demo')
+            plt.show()
+            yield eq
 
 
 if __name__ == "__main__":
+    import sys
+    print sys.argv
     cli(obj={})
