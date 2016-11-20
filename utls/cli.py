@@ -101,13 +101,13 @@ def fig(latex_eqs, separate=False, filename='processed-{}.png', show=False, save
 
     if not separate:
         alleqs = "\n".join(latex_eqs)
+        click.echo(alleqs)
         fig = plt.figure(figsize=(3, 1))
         fig.text(0.1, 0.5, alleqs, size=24, va='center')
-
-        if show:
-            plt.show()
         if save:
             plt.savefig(filename.format("all"))
+        if show:
+            plt.show()
     else:
         for i, eq in enumerate(latex_eqs):
             fig = plt.figure(figsize=(3, 1))
